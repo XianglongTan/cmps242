@@ -1,0 +1,74 @@
+---
+title: "HW4"
+author: "Xianglong Tan"
+date: "5/4/2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Problem 1
+$$w^* = argmin\sum_{i=1}^{N}(wx-y)^2 =\frac{\sum_{i=1}^Nx_iy_i}{\sum_{i=1}^Nx_i^2}$$
+$$\begin{split} 
+L(w^*) &= \sum_{j=1}^N(\frac{\sum_{i=1}^Nx_iy_i}{\sum_{i=1}^Nx_i^2}x_j-y_j)^2\\&= \sum_{j=1}^N[(\frac{\sum_{i=1}^Nx_iy_i}{\sum_{i=1}^Nx_i^2})^2x_j^2-2\frac{\sum_{i=1}^Nx_iy_i}{\sum_{i=1}^Nx_i^2}x_jy_j+y_j^2] \\&=\frac{(\sum_{i=1}^Nx_iy_i)^2}{\sum_{i=1}^Nx_i^2}-2\frac{(\sum_{i=1}^Nx_iy_i)^2}{\sum_{i=1}^Nx_i^2}+\sum_{i=1}^{N}y_i^2 \\&=\sum_{i=1}^Ny_i^2 -\frac{\sum_{i=1}^N\sum_{j=1}^Nx_iy_ix_jy_j}{\sum_{i=1}^Nx_i^2}
+\end{split}$$
+$$w_i^* = \frac{y_i}{x_i}$$
+$$\begin{split}
+L(w_i^*) &= \sum_{j=1}^{N}(\frac{y_i}{x_i}x_j-y_j)^2\\
+&=\frac{y_i^2}{x_i^2}\sum_{j=1}^Nx_j^2-2\frac{y_i}{x_i}\sum_{j=1}^Nx_jy_j+\sum_{j=1}^Ny_j^2
+\end{split}$$
+$$\begin{split}
+E[L(w_i^*)] &= \sum_{i=1}^N\frac{x_i^2}{\sum_{j=1}^Nx_j^2}(\frac{y_i^2}{x_i^2}\sum_{j=1}^Nx_j^2-2\frac{y_i}{x_i}\sum_{j=1}^Nx_jy_j+\sum_{j=1}^Ny_j^2) \\ &=2\sum_{i=1}^Ny_i^2-2\frac{\sum_{i=1}^N \sum_{j=1}^Nx_iy_ix_jy_j}{\sum_{i=1}^Nx_i^2} = 2L(w^*)\end{split}$$
+
+
+# Problem 2
+$\alpha = wx+b, z = \Phi(\alpha),L = (y-z)^2$.   The weight and bias between input layer and hidden layer are $w^{ih}$ and $b^{ih}$. The weight between hidden layer and output node are $w^{ho}$ and $b^{ho}$.  
+The gradient of weight between hidden layer and output node:
+$$\begin{split}
+\frac{\partial L}{\partial w^{ho}_{ij}} &= \frac{\partial L}{\partial z^o_j}\frac{\partial z^o_j}{\partial \alpha^o_j}\frac{\partial \alpha^o_j}{\partial w^{ho}_{ij}} \\ 
+&=2(y_j-z^o_j)\times\frac{1}{\sqrt{2\pi}}exp(-\frac{{\alpha^o_j}^2}{2})\times z^h_i
+\end{split}$$  
+
+The gradient of bias of output node:
+$$\begin{split}
+\frac{\partial L}{\partial b^{o}} &= \frac{\partial L}{\partial z^o_j}\frac{\partial z^o_j}{\partial \alpha^o_j}\frac{\partial \alpha^o_j}{\partial b^{o}} \\ 
+&=2(y_j-z^o_j)\times\frac{1}{\sqrt{2\pi}}exp(-\frac{{\alpha^o_j}^2}{2})\times 1
+\end{split}$$
+   
+Here, $z^o_j$ is the output of jth neuron at output layer, $\alpha ^o_j$ is the input of the jth neuron at output layer, and $z^h_i$ is the output of ith neuron at hidden layer.  
+
+   
+The gradient of weight between input layer and hidden node:
+$$\begin{split}
+\frac{\partial L}{\partial w^{ih}_{ki}} &= \frac{\partial z^{h}_i}{\partial \alpha^h_i}\frac{\partial \alpha^h_i}{\partial w^{ih}_{ki}}\sum_{j}\frac{\partial L}{\partial z^o_j}\frac{\partial z^o_j}{\partial \alpha^o_j}\frac{\partial \alpha^o_j}{\partial z^h_i}\\
+&=\frac{1}{\sqrt{2\pi}}exp(-\frac{\alpha^h_i}{2})\times z^i_k\times \sum_j[2(y_j-z^o_j)\times \frac{1}{\sqrt{2\pi}}exp(-\frac{\alpha^o_j}{2})\times w^{ho}_{ij}]
+\end{split}$$
+
+The gradient of bias of hidden layer:
+$$\begin{split}
+\frac{\partial L}{\partial b^h} &= \frac{\partial z^{h}_i}{\partial \alpha^h_i}\frac{\partial \alpha^h_i}{\partial b^h}\sum_{j}\frac{\partial L}{\partial z^o_j}\frac{\partial z^o_j}{\partial \alpha^o_j}\frac{\partial \alpha^o_j}{\partial z^h_i}\\
+&=\frac{1}{\sqrt{2\pi}}exp(-\frac{\alpha^h_i}{2})\times 1\times \sum_j[2(y_j-z^o_j)\times \frac{1}{\sqrt{2\pi}}exp(-\frac{\alpha^o_j}{2})\times w^{ho}_{ij}]
+\end{split}$$
+
+# problem 3
+The bragmen divergence of rectifier is:
+$$\begin{split}
+\Delta_{f(\tilde{a})} &= F(\tilde{a})-F(a)-f(a)(\tilde{a}-a)
+\end{split}$$  
+If $a >0$ and $\tilde{a}>0$, matching loss is:
+$$\frac12\tilde{a}^2-\frac12a^2-(\tilde{a}-a)a = \frac12(\tilde{a}-a)^2=\frac12(\hat{y}-y)$$
+If $a\leq0$ and $\tilde{a}\geq0$, matching loss is:
+$$\frac12\tilde{a}^2 = \frac12\hat{y}^2$$
+If $a>0$ and $\tilde{a}<0$, matching loss is:
+$$\frac12a^2-(\tilde{a}-a)a =\frac12y^2-\hat{y}y$$
+If $a<0$ and $\tilde{a}<0$, mathcing loss is 0.
+
+
+
+
+
+
+
+

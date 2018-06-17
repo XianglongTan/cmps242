@@ -1,0 +1,229 @@
+---
+title: "CPMS242_HW1"
+author: Xianglong Tan
+output: word_document
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Problem 1
+## 10-fold cross validation  
+First, split the training set into 10 subsets. Then train the model with 9 of them and validate the model with the remaining one. The best model is the one with the least validation error. To unregularize the constant, the corresponding $\lambda$ should be 0, which means element of the unit matrix corresponding to constant is 0. 
+```{r,echo=F,warning=F,message=F}
+data<-read.csv('https://classes.soe.ucsc.edu/cmps242/Spring18/hw/hw1/train.txt')
+x<-data[1]
+names(data)<-c('Y','X')
+data$C<-1
+cnames<-cnames<-paste('X',2:9,sep='')
+for(i in 2:9){
+  data[cnames[i-1]]<-data$X^i
+}
+I<-diag(10)
+# not regularizing constant
+I[1,1]=0
+X<-as.matrix(cbind(data[3], cbind(data[2], data[4:11])))
+Y<-as.matrix(data[1])
+# derive the optimal w
+w<-function(lambda,X,Y){
+  solve(t(X)%*%X + lambda*I)%*%t(X)%*%Y
+  }
+```
+Regularization term $\lambda$ is defined as below:
+```{r,echo=T,warning=FALSE,message=FALSE}
+# 10-fold cross validation
+# define lambda
+lambda<-c()
+for(i in 1:20){
+  lambda<-append(lambda,runif(1,min=10^(i-10),max=10^(i-9)))
+}
+as.matrix(lambda,length(lambda),1)
+```
+Then proceed with cross validation
+```{r, echo=T}
+# calculate mean error
+meanerror<-function(X,Y,lambda){
+  error<-matrix(0,10,1)
+  for(i in 1:10){
+    # split training set
+    if(i*round(dim(X)[1]/10)<dim(X)[1]){
+      valX<-X[((i-1)*round(dim(X)[1]/10)+1):(i*round(dim(X)[1]/10)),]
+      trainX<-X[-(((i-1)*round(dim(X)[1]/10)+1):(i*round(dim(X)[1]/10))),]
+      valY<-as.matrix(Y[((i-1)*round(dim(Y)[1]/10)+1):(i*round(dim(Y)[1]/10)),])
+      trainY<-as.matrix(Y[-(((i-1)*round(dim(Y)[1]/10)+1):(i*round(dim(Y)[1]/10))),])
+      # train the model
+      optW<-w(lambda,trainX,trainY)
+      #calculate error
+      error[i]<-mean((valX%*%optW-valY)^2)
+    }
+    else{
+      valX<-X[((i-1)*round(dim(X)[1]/10)+1):dim(X)[1],]
+      trainX<-X[-((((i-1)*round(dim(X)[1]/10)+1):(round(dim(X)[1])))),]
+      valY<-as.matrix(Y[((i-1)*round(dim(Y)[1]/10)+1):((dim(Y)[1])),])
+      trainY<-as.matrix(Y[-(((i-1)*round(dim(Y)[1]/10)+1):(dim(Y)[1])),])
+      optW<-w(lambda,trainX,trainY)
+      error[i]<-mean((valX%*%optW-valY)^2)
+    }
+  }
+  return(mean(error))
+}
+varerror<-function(X,Y,lambda){
+  error<-matrix(0,10,1)
+  for(i in 1:10){
+    # split training set
+    if(i*round(dim(X)[1]/10)<dim(X)[1]){
+      valX<-X[((i-1)*round(dim(X)[1]/10)+1):(i*round(dim(X)[1]/10)),]
+      trainX<-X[-(((i-1)*round(dim(X)[1]/10)+1):(i*round(dim(X)[1]/10))),]
+      valY<-as.matrix(Y[((i-1)*round(dim(Y)[1]/10)+1):(i*round(dim(Y)[1]/10)),])
+      trainY<-as.matrix(Y[-(((i-1)*round(dim(Y)[1]/10)+1):(i*round(dim(Y)[1]/10))),])
+      # train the model
+      optW<-w(lambda,trainX,trainY)
+      #calculate var
+      error[i]<-var(valX%*%optW-valY)
+    }
+    else{
+      valX<-X[((i-1)*round(dim(X)[1]/10)+1):dim(X)[1],]
+      trainX<-X[-((((i-1)*round(dim(X)[1]/10)+1):(round(dim(X)[1])))),]
+      valY<-as.matrix(Y[((i-1)*round(dim(Y)[1]/10)+1):((dim(Y)[1])),])
+      trainY<-as.matrix(Y[-(((i-1)*round(dim(Y)[1]/10)+1):(dim(Y)[1])),])
+      optW<-w(lambda,trainX,trainY)
+      error[i]<-var((valX%*%optW-valY)^2)
+    }
+  }
+  return(var(error))
+}
+meanError<-matrix(0,length(lambda),1)
+varError<-matrix(0,length(lambda),1)
+for(i in 1:length(lambda)){
+  meanError[i]<-meanerror(X,Y,lambda[i])
+}
+for(i in 1:length(lambda)){
+  varError[i]<-varerror(X,Y,lambda[i])
+}
+lambda<-as.matrix(lambda,length(lambda),1)
+lambdaSummary<-cbind(lambda,meanError)
+lambdaSummary<-cbind(lambdaSummary,varError)
+colnames(lambdaSummary)<-c('lambda','mean_of_error','var_of_error')
+lambdaSummary<-as.data.frame(lambdaSummary)
+lambdaSummary<-lambdaSummary[order(lambdaSummary$mean),]
+```
+The best $\lambda$ is:
+```{r,echo=F}
+lambdaSummary[1,]
+```  
+    
+### The curve of the best regression is:
+```{r,echo=T,fig.height=5}
+optW<-w(lambdaSummary$lambda[1],X,Y)
+f<-function(x){
+  y = 0
+  for(i in 1:length(optW)){
+    y = y+x^(i-1)*optW[i]
+  }
+  return(y)
+}
+curve(f,-5,5)
+```
+
+
+
+### Variance bars of the losses
+```{r,echo=T,fig.height=5}
+lambdaSummary$lambda<-as.factor(lambdaSummary$lambda)
+library(ggplot2)
+ggplot(lambdaSummary,aes(x=lambda,y=var_of_error)) + geom_bar(stat = 'identity',fill='skyblue')+coord_flip()
+```
+
+### Test error
+```{r,echo=T}
+testdata<-read.csv('https://classes.soe.ucsc.edu/cmps242/Spring18/hw/hw1/test.txt')
+names(testdata)<-c('Y','X')
+testdata$C<-1
+cnames<-paste('X',2:9,sep='')
+for(i in 2:9){
+  testdata[cnames[i-1]]<-testdata$X^i
+}
+testX<-as.matrix(cbind(testdata[3], cbind(testdata[2], testdata[4:11])))
+testY<-as.matrix(testdata[1])
+meanerror<-mean((testX%*%optW-testY)^2)
+cat('Mean square error of test set is:',meanerror)
+```
+
+## Leave-one-out cross validation
+First extract one observation from the training set and train the model with the remaining observations. Then validate the model with the extracted observation. Loop this operation for all observations of training set and calculate the mean error. Then the best model is the one with least mean error.
+```{r,echo=T}
+meanerror<-function(X,Y,lambda){
+  error<-matrix(0,dim(X)[1],1)
+  for(i in 1:(dim(X)[1])){
+    # split training set
+    valX<-X[i,]
+    valY<-Y[i,]
+    trainX<-X[-i,]
+    trainY<-Y[-i,]
+    optW<-w(lambda,trainX,trainY)
+    error[i]<-mean((valX%*%optW-valY)^2)
+  }
+  return(mean(error))
+}
+varerror<-function(X,Y,lambda){
+  error<-matrix(0,dim(X)[1],1)
+  for(i in 1:(dim(X)[1])){
+    # split training set
+    valX<-X[i,]
+    valY<-Y[i,]
+    trainX<-X[-i,]
+    trainY<-Y[-i,]
+    optW<-w(lambda,trainX,trainY)
+    error[i]<-mean((valX%*%optW-valY)^2)
+  }
+  return(var(error))
+}
+meanError<-matrix(0,length(lambda),1)
+varError<-matrix(0,length(lambda),1)
+for(i in 1:length(lambda)){
+  meanError[i]<-meanerror(X,Y,lambda[i])
+}
+for(i in 1:length(lambda)){
+  varError[i]<-varerror(X,Y,lambda[i])
+}
+lambda<-as.matrix(lambda,length(lambda),1)
+lambdaSummary<-cbind(lambda,meanError)
+lambdaSummary<-cbind(lambdaSummary,varError)
+colnames(lambdaSummary)<-c('lambda','mean_of_error','var_of_error')
+lambdaSummary<-as.data.frame(lambdaSummary)
+lambdaSummary<-lambdaSummary[order(lambdaSummary$mean),]
+```
+  
+Best $\lambda$ is:
+```{r,echo=TRUE}
+lambdaSummary[1,]
+```
+  
+###The variance bars is:
+```{r,echo=TRUE}
+lambdaSummary$lambda<-as.factor(lambdaSummary$lambda)
+library(ggplot2)
+ggplot(lambdaSummary,aes(x=lambda,y=var_of_error)) + geom_bar(stat = 'identity',fill='skyblue')+coord_flip()
+```
+   
+
+
+### Test error
+```{r,echo=T}
+testdata<-read.csv('https://classes.soe.ucsc.edu/cmps242/Spring18/hw/hw1/test.txt')
+names(testdata)<-c('Y','X')
+testdata$C<-1
+cnames<-paste('X',2:9,sep='')
+for(i in 2:9){
+  testdata[cnames[i-1]]<-testdata$X^i
+}
+testX<-as.matrix(cbind(testdata[3], cbind(testdata[2], testdata[4:11])))
+testY<-as.matrix(testdata[1])
+meanerror<-mean((testX%*%optW-testY)^2)
+cat('Mean square error of test set is:',meanerror)
+```
+
+

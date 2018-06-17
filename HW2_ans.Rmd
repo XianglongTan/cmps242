@@ -1,0 +1,107 @@
+---
+title: "CMPS242_HW2"
+author: "Xianglong Tan"
+date: "4/14/2018"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Problem 1  
+The probability that a coin flip x tims until the first head occur is:
+$$p(X=n) = (1-\theta)^{n-1}\theta$$  
+Therefore, the entropy is:
+$$\begin{split} 
+H(X) &= -\sum_{x}p(X=x)\log p(X=x) \\ 
+&= -\sum_{i=1}^{\infty}(1-\theta)^{i-1}\theta\log (1-\theta)^{i-1}\theta \\ 
+&= -\frac{1}{1-\theta}\sum_{i=1}^{\infty}(1-\theta)^i\theta[(i-1)\log (1-\theta) + \log \theta] \\ 
+&= - \frac1{1-\theta}[\frac{1-\theta}{(1-(1-\theta))^2}\theta \log (1-\theta) - \frac{1-\theta}{1-(1-\theta)}\theta \log (1-\theta) + \frac{1-\theta}{1-(1-\theta)}\theta \log \theta]\\
+&=-\log {(1-\theta)^{\frac{1-\theta}{\theta}}\theta}
+\end{split}$$
+
+  
+# Problem 2  
+The entropy of M-state discrete random variable x is:
+$$H[x] = -\sum_{i=1}^{M}p(x_i)\log p(x_i)$$  
+Since $\log$ is a concave function, namely $\sum a\log b \geq \sum \log ab$, we can derive:
+$$\begin{split}
+H[x] &= \sum_{i=1}^Mp(x_i)\log \frac1{p(x_i)} \\
+&\leq \sum_{i=1}^M \log\frac{p(x_i)}{p(x_i)} = \sum_{i=1}^M \log 1 \\ 
+& \leq \log \sum_{x=i}^M1 = \log M
+\end{split}$$
+
+
+# Problem 3  
+$p(x) = N(x|\mu,\sigma^2) = \frac1{\sigma\sqrt{2\pi}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}$, $q(x) = N(x|m,s^2) = \frac1{s\sqrt{2\pi}}e^{-\frac{(x-m)^2}{2s^2}}$. 
+$$\begin{split}
+KL(p||q) &= \int{p(x)\log \frac{p(x)}{q(x)}}dx \\
+&=\int{p(x)\log p(x)}dx - \int{p(x)\log q(x)dx}
+\end{split}$$
+$$\begin{split}
+\int{p(x)\log p(x)}dx 
+&= \int \frac1{\sigma\sqrt{2\pi}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}\log \frac1{\sigma\sqrt{2\pi}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}dx \\ 
+&= \int \frac1{\sigma\sqrt{2\pi}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}[\log\frac1{\sigma\sqrt{2\pi}}-\frac{(x-\mu)^2}{2\sigma^2}]dx \\
+&= log\frac1{\sigma\sqrt{2\pi}} - \frac{(\sigma^2+\mu^2)}{2\sigma^2}+\frac{\mu^2}{2\sigma^2}=log\frac1{\sigma\sqrt{2\pi}}-\frac12
+\end{split}$$
+$$\begin{split}
+\int{p(x)\log q(x)}dx 
+&= \int \frac1{\sigma\sqrt{2\pi}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}\log \frac1{s\sqrt{2\pi}}e^{-\frac{(x-m)^2}{2s^2}}dx \\ 
+&= \int \frac1{\sigma\sqrt{2\pi}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}[\log\frac1{s\sqrt{2\pi}}-\frac{(x-m)^2}{2s^2}]dx \\
+&= log\frac1{s\sqrt{2\pi}} - \frac{(\sigma^2+\mu^2)}{2s^2}+\frac{mu}{s^2}-\frac{m^2}{2s^2}
+\end{split}$$
+$$\begin{split}
+KL(p||q) &= \int{p(x)\log p(x)}dx - \int{p(x)\log q(x)dx}\\
+&=log\frac1{\sigma\sqrt{2\pi}}-\frac12 - [log\frac1{s\sqrt{2\pi}} - \frac{(\sigma^2+\mu^2)}{2s^2}+\frac{mu}{s^2}-\frac{m^2}{2s^2}]\\
+&= \log \frac{s}{\sigma} + \frac{\sigma^2+(\mu-m)^2}{2s^2} -\frac12
+\end{split}$$  
+
+# Problem 4  
+The arithmetic mean is $\sum_i p_ix_i$. The geometrical mean is $\prod_i p_ix_i$. Take natural log of both arithmetic and geometrical mean:
+Arithmetic mean:
+$$\log \sum_i p_ix_i$$  
+Geometrical mean
+$$\log \prod_i x_i^{p_i} = \sum_i p_i\log x_i$$
+According to Jensen's inequality, the concave function $\log$ has the property that $\sum \log ax \geq \sum a\log x$. Therefore, we have:
+$$\sum_i p_i\log x_i \leq \sum_i \log p_ix_i $$
+Since $\log mean_{geo} \leq \log mean_{ari}$ and $\log$ is monotonic function, arithmetic mean will never less than geometrical mean.
+
+# Problem 5  
+The probability density function of normal distribution is:
+$$\frac1{(2\pi)^{\frac{D}{2}}} \frac1{|\Sigma|^\frac12}exp\{-\frac12(x-\mu)^T\Sigma^{-1} (x-\mu)\}$$
+Log likelihood function is:
+$$l = \sum_i^N-\frac{D}{2}\log 2\pi -\frac12\log |\Sigma| - \frac12(x_i-\mu)^T\Sigma^{-1}(x_i-\mu) $$
+The first order condition of $\mu$ for maximizing log likelihood is:
+$$\sum_i^N(x_i-\mu)=0$$  
+So we have $\mu_{ML} = \frac1{N}\sum_{i=1}^{N}x_i$  
+The first order condition of $\Sigma$ for maximizing log likelihood is:
+$$\sum_{i=1}^N -\frac1{2}(\Sigma^{-1})^T+\frac{(x_i-\mu)^T\Sigma^{-1}I\Sigma^{-1}(x_i-\mu)}{2} = 0$$  
+So we have   
+$$\Sigma_{ML} = \frac{1}{N}\sum_{n=1}(x_n-\mu_{ML})(x_n-\mu_{ML})^T$$
+
+The Expectation of the maximum likelihood estimators are:
+$$E[\mu_{ML}] = E[ \frac1{N}\sum_{i=1}^{N}x_i] = \frac{1}{N}\sum_{i=1}^{N}E[x_i] = \frac{N}{N}\mu = \mu$$
+
+$$\begin{split}
+E[\Sigma_{ML}] &= E[\frac{1}{N}\sum_{n=1}^N(x_n-\mu_{ML})(x_n-\mu_{ML})^T]\\
+&=E[\frac{1}{N}\sum_{n=1}^N(x_nx_n^T-2\mu_{ML}x_n^T+\mu_{ML}\mu_{ML}^T)]\\
+&=E[\frac{1}{N}\sum_{n=1}^Nx_nx_n^T-\frac2{N}\mu_{ML}\sum_{n=1}^Nx_n+\frac1{N}\sum_{n=1}^N\mu_{ML}\mu_{ML}^T]\\
+&=\frac{1}{N}\sum_{n=1}^NE[x_nx_n^T]-E[\mu_{ML}\mu_{ML}^T]\\
+&=\frac{1}{N}\sum_{n=1}^N(\Sigma+E^2[x])-(Var[\mu_ML]-E^2[\mu_{ML}])\\
+&=\Sigma-Var[\mu_{ML}]\\
+&=\Sigma-Var[\frac1{N}\sum_{n=1}^Nx_n]\\
+&=\Sigma-\frac1{N^2}\sum_{n=1}^NVar(x_n)\\
+&=\Sigma-\frac1{N}\Sigma=\frac{N-1}{N}\Sigma
+\end{split}$$
+
+# Extra Credit
+If a function is convex:
+$$\int_0^1f(x+\lambda(y-x))d \lambda =\int_0^1f((1-\lambda)x+\lambda y)\leq\int_0^1(1-\lambda)f(x)+\lambda f(y)d\lambda$$
+$$\int_0^1(1-\lambda)f(x)+\lambda f(y)d\lambda=\frac12[f(x)+f(y)]$$
+If a function satisfy the condition $\int_0^1f(x+\lambda(y-x))d \lambda\leq\frac{f(x)+f(y)}{2}$, according to $\frac12[f(x)+f(y)]=\int_0^1(1-\lambda)f(x)+\lambda f(y)d\lambda$, we have:
+$$\int_0^1(1-\lambda)f(x)+\lambda f(y)d\lambda \geq\int_0^1f(x+\lambda(y-x))d \lambda =\int_0^1f((1-\lambda)x+\lambda y)$$. So f is a convex function.
+
+
